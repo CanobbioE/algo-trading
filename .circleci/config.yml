@@ -1,0 +1,34 @@
+version: 2.1
+
+orbs:
+  go: circleci/go@3.0.2
+
+executors:
+  go-executor:
+    docker:
+      - image: cimg/go:1.24.2
+    environment:
+      CGO_ENABLED: 1
+      GOOS: linux
+      GOARCH: amd64
+
+jobs:
+  lint:
+    executor: go-executor
+    steps:
+      - checkout
+      - run:
+          name: Install Linters
+          command: make install-tools
+      - run:
+          name: Run Linters
+          command: make lint
+
+workflows:
+  version: 2
+  lint:
+    jobs:
+      - lint:
+          filters:
+            tags:
+              only: /.*/

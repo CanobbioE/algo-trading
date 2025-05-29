@@ -1,6 +1,6 @@
 package scraping
 
-import "github.com/canobbioe/algo-trading/pkg/utilities"
+import "github.com/CanobbioE/algo-trading/pkg/utilities"
 
 type eodResponse struct {
 	D []any `json:"d"`

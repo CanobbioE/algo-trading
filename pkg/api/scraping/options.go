@@ -1,8 +1,8 @@
 package scraping
 
 import (
-	"github.com/canobbioe/algo-trading/pkg/api"
-	"github.com/canobbioe/algo-trading/pkg/utilities"
+	"github.com/CanobbioE/algo-trading/pkg/api"
+	"github.com/CanobbioE/algo-trading/pkg/utilities"
 )
 
 type callOptions struct {

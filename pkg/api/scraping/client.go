@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/canobbioe/algo-trading/pkg/api"
-	"github.com/canobbioe/algo-trading/pkg/utilities"
+	"github.com/CanobbioE/algo-trading/pkg/api"
+	"github.com/CanobbioE/algo-trading/pkg/utilities"
 )
 
 const (

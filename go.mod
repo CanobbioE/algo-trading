@@ -1,3 +1,3 @@
-module github.com/canobbioe/algo-trading
+module github.com/CanobbioE/algo-trading
 
 go 1.24.2

@@ -1,8 +1,8 @@
 package strategies
 
 import (
-	"github.com/canobbioe/algo-trading/pkg/api"
-	"github.com/canobbioe/algo-trading/pkg/signals"
+	"github.com/CanobbioE/algo-trading/pkg/api"
+	"github.com/CanobbioE/algo-trading/pkg/signals"
 )
 
 type vwapAnalysis struct {

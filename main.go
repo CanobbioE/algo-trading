@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/canobbioe/algo-trading/pkg/api/scraping"
-	"github.com/canobbioe/algo-trading/pkg/signals"
-	"github.com/canobbioe/algo-trading/pkg/strategies"
+	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
+	"github.com/CanobbioE/algo-trading/pkg/signals"
+	"github.com/CanobbioE/algo-trading/pkg/strategies"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 	}
 
 	cli := scraping.NewClient()
-	data, err := cli.GetOHLCV("ENI.MTA", &scraping.WithTimeframe{TimeFrame: scraping.Yearly})
+	data, err := cli.GetOHLCV("QQQS.ETF", &scraping.WithTimeframe{TimeFrame: scraping.Daily})
 	if err != nil {
 		panic(err)
 	}

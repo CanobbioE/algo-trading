@@ -26,3 +26,14 @@ func SafeConvert[T any](val any) T {
 	}
 	return defaultValue
 }
+
+func MustReturn[T any](val T, err error) T {
+	Must(err)
+	return val
+}
+
+func Must(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

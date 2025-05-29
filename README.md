@@ -37,7 +37,7 @@ BUY:    25%
 |Shorthand| Full Name| Description|
 |---|---|---|
 | -h | --help         |      help for analyse
-|-t |--ticker    |   [string] Stock ticker to use (required_
+|-t |--ticker    |   [string] Stock ticker to use (required)
 |-f |--timeframe  |  [string]  Time frame to use (one of [`1d`, `1m`, `3m`, `6m`, `1y`, `3y`, `5y`] - default `1d`)
 
 **Usage**

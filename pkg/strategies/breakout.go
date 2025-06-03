@@ -9,10 +9,14 @@ import (
 )
 
 type Thresholds struct {
-	AtrPeriod                         int
-	LowATRThreshold, HighATRThreshold float64
-	LowLookback, HighLookback         int
-	VolumeThreshold                   float64
+	AtrPeriod        int     `json:"atr_period"`
+	LowATRThreshold  float64 `json:"low_atr_threshold"`
+	HighATRThreshold float64 `json:"high_atr_threshold"`
+	LowLookback      int     `json:"low_lookback"`
+	HighLookback     int     `json:"high_lookback"`
+	VolumeThreshold  float64 `json:"volume_threshold"`
+	Deviation        float64 `json:"deviation"`
+	Squeeze          float64 `json:"squeeze"`
 }
 
 type breakoutAnalysis struct {

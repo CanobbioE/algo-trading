@@ -12,6 +12,11 @@ type Strategy interface {
 	Execute(data []*api.OHLCV) signals.Operation
 }
 
+type StrategyWeight struct {
+	Weight   float64
+	Strategy Strategy
+}
+
 type AnalysisInput struct {
 	*vwapAnalysis
 	*mrAnalysis

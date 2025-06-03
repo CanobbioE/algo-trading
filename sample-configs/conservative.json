@@ -1,0 +1,52 @@
+{
+  "stock_universe": [
+    "ENI.MTA",
+    "A2A.MTA",
+    "UNI.MTA",
+    "LDO.MTA",
+    "QQQS.ETF",
+    "QQQ3.ETF",
+    "1GOOGL.MTA",
+    "1MSFT.MTA"
+  ],
+  "strategies": [
+    {
+      "strategy": "MEANREVERSION",
+      "weight": 1.5
+    },
+    {
+      "strategy": "VWAP",
+      "weight": 1.2
+    },
+    {
+      "strategy": "BREAKOUT",
+      "weight": 0.6
+    },
+    {
+      "strategy": "BOLLINGER",
+      "weight": 1.0
+    }
+  ],
+  "thresholds": {
+    "atr_period": 5,
+    "low_atr_threshold": 0.03,
+    "high_atr_threshold": 0.15,
+    "low_lookback": 15,
+    "high_lookback": 5,
+    "volume_threshold": 1.5,
+    "deviation": 0.015,
+    "squeeze": 0.15
+  },
+  "lookback": 5,
+  "bollinger_coefficient": 2.5,
+  "scan_filters": {
+    "min_confidence": 0.7,
+    "min_weightedScore": 0.6,
+    "max_risk": "LOW",
+    "min_opportunity": "MEDIUM",
+    "min_volume": 5000,
+    "min_marketCap": 2000000000,
+    "max_marketCap": 200000000000,
+    "required_signals": 2
+  }
+}

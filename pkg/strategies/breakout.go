@@ -1,23 +1,11 @@
 package strategies
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/CanobbioE/algo-trading/pkg/api"
 	"github.com/CanobbioE/algo-trading/pkg/signals"
 )
-
-type Thresholds struct {
-	AtrPeriod        int     `json:"atr_period"`
-	LowATRThreshold  float64 `json:"low_atr_threshold"`
-	HighATRThreshold float64 `json:"high_atr_threshold"`
-	LowLookback      int     `json:"low_lookback"`
-	HighLookback     int     `json:"high_lookback"`
-	VolumeThreshold  float64 `json:"volume_threshold"`
-	Deviation        float64 `json:"deviation"`
-	Squeeze          float64 `json:"squeeze"`
-}
 
 type breakoutAnalysis struct {
 	atr          float64
@@ -27,58 +15,55 @@ type breakoutAnalysis struct {
 	avgVolume    float64
 }
 
-type BreakouStrategy struct {
+// BreakoutStrategy implements a Breakout Strategy.
+type BreakoutStrategy struct {
 	t        *Thresholds
 	analysis *breakoutAnalysis
 }
 
-func NewBreakouStrategy(t *Thresholds) *BreakouStrategy {
-	return &BreakouStrategy{t: t}
+// NewBreakoutStrategy creates a new BreakoutStrategy.
+func NewBreakoutStrategy(t *Thresholds) *BreakoutStrategy {
+	return &BreakoutStrategy{t: t}
 }
 
-// Execute scans the data and finds breakout signals based on high and low levels
-func (s *BreakouStrategy) Execute(data []*api.OHLCV) signals.Operation {
+// Execute scans the data and finds breakout signals based on high and low levels.
+func (s *BreakoutStrategy) Execute(data []*api.OHLCV) signals.Operation {
 	if len(data) < s.t.AtrPeriod+1 {
 		return signals.NoOp
 	}
 
-	// Calculate ATR
 	atr := calculateATR(data, s.t.AtrPeriod)
-	//fmt.Printf("Current ATR: %.4f\n", atr)
-
-	// Determine dynamic lookback
-	var lookback int
-	if atr < s.t.LowATRThreshold {
-		lookback = s.t.HighLookback
-	} else if atr > s.t.HighATRThreshold {
-		lookback = s.t.LowLookback
-	} else {
-		lookback = (s.t.LowLookback + s.t.HighLookback) / 2
+	var dynamicLookBack int
+	switch {
+	case atr < s.t.LowATRThreshold:
+		dynamicLookBack = s.t.HighLookback
+	case atr > s.t.HighATRThreshold:
+		dynamicLookBack = s.t.LowLookback
+	default:
+		dynamicLookBack = (s.t.LowLookback + s.t.HighLookback) / 2
 	}
-	fmt.Printf("Dynamic Lookback Period: %d\n", lookback)
 
-	if len(data) < lookback {
+	if len(data) < dynamicLookBack {
 		return signals.NoOp
 	}
 
-	// Calculate breakout levels over lookback
+	// Calculate breakout levels over dynamicLookBack
 	var highestHigh, lowestLow float64
-	for i := len(data) - lookback; i < len(data); i++ {
-		if i == len(data)-lookback || data[i].High > highestHigh {
+	for i := len(data) - dynamicLookBack; i < len(data); i++ {
+		if i == len(data)-dynamicLookBack || data[i].High > highestHigh {
 			highestHigh = data[i].High
 		}
-		if i == len(data)-lookback || data[i].Low < lowestLow {
+		if i == len(data)-dynamicLookBack || data[i].Low < lowestLow {
 			lowestLow = data[i].Low
 		}
 	}
 
-	// Calculate average volume over lookback
+	// Calculate average volume over dynamicLookBack
 	var totalVolume float64
-	for i := len(data) - lookback; i < len(data); i++ {
+	for i := len(data) - dynamicLookBack; i < len(data); i++ {
 		totalVolume += data[i].Volume
 	}
-	avgVolume := totalVolume / float64(lookback)
-	//fmt.Printf("Average volume for confirmation: %.0f\n", avgVolume)
+	avgVolume := totalVolume / float64(dynamicLookBack)
 
 	latest := data[len(data)-1]
 	s.analysis = &breakoutAnalysis{
@@ -98,6 +83,7 @@ func (s *BreakouStrategy) Execute(data []*api.OHLCV) signals.Operation {
 	return signals.NoOp
 }
 
+// calculateATR returns the Average True Range, which is the indicator that demonstrates market volatility.
 func calculateATR(data []*api.OHLCV, period int) float64 {
 	if len(data) < period+1 {
 		return 0

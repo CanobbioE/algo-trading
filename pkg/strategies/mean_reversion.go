@@ -13,12 +13,15 @@ type mrAnalysis struct {
 	sma       float64
 }
 
+// MeanReversionStrategy implements a Mean Reversion Strategy.
 type MeanReversionStrategy struct {
-	lookBack, rsiPeriod int
-	deviationThreshold  float64
-	analysis            *mrAnalysis
+	analysis           *mrAnalysis
+	lookBack           int
+	rsiPeriod          int
+	deviationThreshold float64
 }
 
+// NewMeanReversionStrategy creates a new MeanReversionStrategy.
 func NewMeanReversionStrategy(lookBack int, deviationThreshold float64) *MeanReversionStrategy {
 	return &MeanReversionStrategy{
 		lookBack:           lookBack,
@@ -26,7 +29,7 @@ func NewMeanReversionStrategy(lookBack int, deviationThreshold float64) *MeanRev
 	}
 }
 
-// Execute mean reversion with RSI confirmation
+// Execute mean reversion with RSI confirmation.
 func (s *MeanReversionStrategy) Execute(data []*api.OHLCV) signals.Operation {
 	if len(data) < s.lookBack || len(data) <= s.rsiPeriod {
 		return signals.NoOp
@@ -45,8 +48,6 @@ func (s *MeanReversionStrategy) Execute(data []*api.OHLCV) signals.Operation {
 
 	// Calculate RSI
 	rsi := s.calculateRSI(data, s.rsiPeriod)
-
-	// fmt.Printf("SMA: %.3f, Close: %.3f, Deviation: %.2f%%, RSI: %.2f\n", sma, latest.Close, deviation*100, rsi)
 
 	s.analysis = &mrAnalysis{
 		rsi:       rsi,

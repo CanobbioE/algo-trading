@@ -1,6 +1,10 @@
 package scraping
 
-import "github.com/CanobbioE/algo-trading/pkg/utilities"
+import (
+	"strings"
+
+	"github.com/CanobbioE/algo-trading/pkg/utilities"
+)
 
 type eodResponse struct {
 	D []any `json:"d"`
@@ -15,18 +19,18 @@ type getOCHLVReq struct {
 }
 
 type getOCHLVInnerReq struct {
+	FromDate             any    `json:"FromDate"`
+	ToDate               any    `json:"ToDate"`
 	SampleTime           string `json:"SampleTime"`
 	TimeFrame            string `json:"TimeFrame"`
 	RequestedDataSetType string `json:"RequestedDataSetType"`
 	ChartPriceType       string `json:"ChartPriceType"`
 	Key                  string `json:"Key"`
-	OffSet               int    `json:"OffSet"`
-	FromDate             any    `json:"FromDate"`
-	ToDate               any    `json:"ToDate"`
-	UseDelay             bool   `json:"UseDelay"`
 	KeyType              string `json:"KeyType"`
 	KeyType2             string `json:"KeyType2"`
 	Language             string `json:"Language"`
+	OffSet               int    `json:"OffSet"`
+	UseDelay             bool   `json:"UseDelay"`
 }
 
 type getEODReq struct {
@@ -61,7 +65,7 @@ type getEODInnerReq struct {
 func newGetOCHLVRequest(key string, options *callOptions) *getOCHLVReq {
 	return &getOCHLVReq{
 		Request: &getOCHLVInnerReq{
-			Key:                  key,
+			Key:                  strings.ToUpper(key),
 			SampleTime:           utilities.OptionalWithFallback(options.sampleTime, "1d"),
 			TimeFrame:            utilities.OptionalWithFallback(options.timeFrame, "1mm"),
 			RequestedDataSetType: "ohlc",
@@ -77,13 +81,13 @@ func newGetOCHLVRequest(key string, options *callOptions) *getOCHLVReq {
 	}
 }
 
-// TODO
-func newGetEODRequest(key string) *getEODReq {
+// TODO.
+func newGetEODRequest(key string, options *callOptions) *getEODReq {
 	return &getEODReq{
 		Request: &getEODInnerReq{
-			Key:                  "",
-			TimeFrame:            "",
-			SampleTime:           "",
+			Key:                  key,
+			SampleTime:           utilities.OptionalWithFallback(options.sampleTime, "1d"),
+			TimeFrame:            utilities.OptionalWithFallback(options.timeFrame, "1mm"),
 			RequestedDataSetType: "",
 			ChartPriceType:       "",
 			UseDelay:             "",

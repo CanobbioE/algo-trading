@@ -9,16 +9,19 @@ type vwapAnalysis struct {
 	closePrice float64
 	vwap       float64
 }
+
+// VWAPStrategy implements a Volume Weighted Average Price Strategy.
 type VWAPStrategy struct {
-	lookBack int
 	analysis *vwapAnalysis
+	lookBack int
 }
 
+// NewVWAPStrategy creates a new VWAPStrategy.
 func NewVWAPStrategy(lookBack int) *VWAPStrategy {
 	return &VWAPStrategy{lookBack: lookBack}
 }
 
-// Execute calculates VWAP and returns buy/sell/none decision
+// Execute calculates VWAP and returns buy/sell/none decision.
 func (s *VWAPStrategy) Execute(data []*api.OHLCV) signals.Operation {
 	if len(data) == 0 || s.lookBack <= 0 {
 		return signals.NoOp
@@ -45,7 +48,6 @@ func (s *VWAPStrategy) Execute(data []*api.OHLCV) signals.Operation {
 	vwap := cumulativePV / cumulativeVolume
 	latest := data[len(data)-1]
 
-	//fmt.Printf("VWAP: %.3f, Latest Close: %.3f\n", vwap, latest.Close)
 	s.analysis = &vwapAnalysis{
 		closePrice: latest.Close,
 		vwap:       vwap,

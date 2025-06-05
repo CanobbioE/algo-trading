@@ -1,7 +1,6 @@
 package strategies
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/CanobbioE/algo-trading/pkg/api"
@@ -14,13 +13,16 @@ type bbAnalysis struct {
 	lower float64
 	width float64
 }
+
+// BollingerBandSqueezeStrategy implements a Bollinger Band Squeeze Strategy.
 type BollingerBandSqueezeStrategy struct {
+	analysis         *bbAnalysis
 	period           int
 	k                float64
 	squeezeThreshold float64
-	analysis         *bbAnalysis
 }
 
+// NewBollingerBandSqueezeStrategy creates a new BollingerBandSqueezeStrategy.
 func NewBollingerBandSqueezeStrategy(period int, k, squeezeThreshold float64) *BollingerBandSqueezeStrategy {
 	return &BollingerBandSqueezeStrategy{
 		period:           period,
@@ -77,7 +79,6 @@ func (s *BollingerBandSqueezeStrategy) Execute(data []*api.OHLCV) signals.Operat
 
 	// Determine if the bandwidth is below threshold (squeeze)
 	if bandWidth < s.squeezeThreshold {
-		fmt.Println("Bollinger Band Squeeze detected -> Potential breakout setup")
 		// Check for breakout
 		latest := data[len(data)-1]
 		if latest.Close > upperBand {

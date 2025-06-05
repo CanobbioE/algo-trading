@@ -10,22 +10,32 @@ type callOptions struct {
 	sampleTime *string
 }
 
+// TimeFrame represents a predefined period of time.
 type TimeFrame string
 
 const (
-	Daily        TimeFrame = "1d"
-	Monthly      TimeFrame = "1m"
-	Quarterly    TimeFrame = "3m"
-	HalfYearly   TimeFrame = "6m"
-	Yearly       TimeFrame = "1y"
-	Triennial    TimeFrame = "3y"
+	// Daily is a TimeFrame representing one day.
+	Daily TimeFrame = "1d"
+	// Monthly is a TimeFrame representing one month.
+	Monthly TimeFrame = "1m"
+	// Quarterly is a TimeFrame representing three months.
+	Quarterly TimeFrame = "3m"
+	// HalfYearly is a TimeFrame representing six months.
+	HalfYearly TimeFrame = "6m"
+	// Yearly is a TimeFrame representing one year.
+	Yearly TimeFrame = "1y"
+	// Triennial is a TimeFrame representing  three years.
+	Triennial TimeFrame = "3y"
+	// Quinquennial is a TimeFrame representing five years.
 	Quinquennial TimeFrame = "5y"
 )
 
+// WithTimeframe applies a timeframe option to the API requests.
 type WithTimeframe struct {
 	TimeFrame TimeFrame
 }
 
+// Apply the WithTimeframe option, it automatically sets the sample time based on the value of the timeframe.
 func (o *WithTimeframe) Apply(in api.Options) {
 	opts, ok := in.(*callOptions)
 	if !ok {

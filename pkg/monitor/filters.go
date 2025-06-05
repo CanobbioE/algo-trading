@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// ScanFilters defines criteria for filtering stocks
+// ScanFilters defines criteria for filtering stocks.
 type ScanFilters struct {
 	MinConfidence    float64          `json:"min_confidence"`
 	MinWeightedScore float64          `json:"min_weighted_score"`
@@ -18,27 +18,19 @@ type ScanFilters struct {
 	RequiredSignals  int              `json:"required_signals"`
 }
 
-func DefaultFilters() *ScanFilters {
-	return &ScanFilters{
-		MinConfidence:    0.6,
-		MinWeightedScore: 1.0,
-		MaxRisk:          RiskMedium,
-		MinOpportunity:   OpportunityMedium,
-		MinVolume:        100000,
-		MinMarketCap:     1000000,     // $1M minimum
-		MaxMarketCap:     50000000000, // $50B maximum
-		RequiredSignals:  2,
-	}
-}
-
+// RiskLevel defines the probability of success for trading a product.
 type RiskLevel int
 
 const (
+	// RiskLow represents a low probability of the trade being unsuccessful.
 	RiskLow RiskLevel = iota
+	// RiskMedium represents a medium probability of the trade being unsuccessful.
 	RiskMedium
+	// RiskHigh represents a high probability of the trade being unsuccessful.
 	RiskHigh
 )
 
+// String returns the string representation of r.
 func (r *RiskLevel) String() string {
 	if r == nil {
 		return "<nil>"
@@ -55,6 +47,7 @@ func (r *RiskLevel) String() string {
 	}
 }
 
+// UnmarshalJSON implements a custom json.Unmarshaler.
 func (r *RiskLevel) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
@@ -73,14 +66,19 @@ func (r *RiskLevel) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// OpportunityLevel defines how profitable a product is.
 type OpportunityLevel int
 
 const (
+	// OpportunityLow represents a low margin for profit.
 	OpportunityLow OpportunityLevel = iota
+	// OpportunityMedium represents a medium margin for profit.
 	OpportunityMedium
+	// OpportunityHigh represents a high margin for profit.
 	OpportunityHigh
 )
 
+// String returns the string representation of o.
 func (o *OpportunityLevel) String() string {
 	if o == nil {
 		return "<nil>"
@@ -97,6 +95,7 @@ func (o *OpportunityLevel) String() string {
 	}
 }
 
+// UnmarshalJSON implements a custom json.Unmarshaler.
 func (o *OpportunityLevel) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {

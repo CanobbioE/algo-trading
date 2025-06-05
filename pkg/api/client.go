@@ -1,16 +1,25 @@
 package api
 
+import "context"
+
+// Client is the generic API client interface all concrete API clients must implement.
 type Client interface {
-	GetOHLCV(ticker string, opts ...CallOption) ([]*OHLCV, error)
-	GetEOD(ticker string, opts ...CallOption) (*EOD, error)
+	// GetOHLCV returns Open, High, Low, Close, Volume data.
+	GetOHLCV(ctx context.Context, ticker string, opts ...CallOption) ([]*OHLCV, error)
+	// GetEOD returns End Of Day data.
+	GetEOD(ctx context.Context, ticker string, opts ...CallOption) (*EOD, error)
 }
 
-type Options interface{}
+// Options is any collection of options.
+type Options any
 
+// CallOption is the interface that any API request option must implement.
 type CallOption interface {
-	Apply(Options)
+	// Apply the current CallOption to the options.
+	Apply(o Options)
 }
 
+// OHLCV represents the standard response for Open, High, Low, Close, Volume data.
 type OHLCV struct {
 	Timestamp       float64
 	Open            float64
@@ -21,6 +30,7 @@ type OHLCV struct {
 	Volume          float64
 }
 
+// EOD represents the standard response for End Of Day data.
 type EOD struct {
 	Ticker       string
 	ISIN         string

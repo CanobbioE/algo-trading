@@ -2,8 +2,9 @@ package scraping
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/CanobbioE/algo-trading/pkg/api"
@@ -20,26 +21,28 @@ type scrapingClient struct {
 	client *http.Client
 }
 
+// NewClient creates a new scraping client that implements api.Client.
 func NewClient() api.Client {
 	return &scrapingClient{
 		client: http.DefaultClient,
 	}
 }
 
-func (c *scrapingClient) GetEOD(ticker string, opts ...api.CallOption) (*api.EOD, error) {
+// GetEOD returns End Of Day data.
+func (c *scrapingClient) GetEOD(ctx context.Context, ticker string, opts ...api.CallOption) (*api.EOD, error) {
 	o := &callOptions{}
 	for _, opt := range opts {
 		opt.Apply(o)
 	}
 	var data bytes.Buffer
-	err := json.NewEncoder(&data).Encode(newGetEODRequest(ticker))
+	err := json.NewEncoder(&data).Encode(newGetEODRequest(ticker, o))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to encode EOD request: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, origin+getInfoEndpoint, &data)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, origin+getInfoEndpoint, &data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create EOD request: %w", err)
 	}
 	req.Header.Set("accept", "application/json, text/javascript, */*; q=0.01")
 	req.Header.Set("accept-language", "en-US,en;q=0.9")
@@ -51,7 +54,7 @@ func (c *scrapingClient) GetEOD(ticker string, opts ...api.CallOption) (*api.EOD
 	req.Header.Set("x-requested-with", "XMLHttpRequest")
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to send EOD request: %w", err)
 	}
 	defer func() {
 		_ = resp.Body.Close()
@@ -61,7 +64,7 @@ func (c *scrapingClient) GetEOD(ticker string, opts ...api.CallOption) (*api.EOD
 	var out eodResponse
 	err = d.Decode(&out)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode EOD response: %w", err)
 	}
 
 	/*
@@ -82,12 +85,10 @@ func (c *scrapingClient) GetEOD(ticker string, opts ...api.CallOption) (*api.EOD
 		MinToday:     out.D[4].(float64),
 		CurrentPrice: out.D[5].(float64),
 	}, nil
-
 }
 
-func (c *scrapingClient) GetOHLCV(ticker string, opts ...api.CallOption) ([]*api.OHLCV, error) {
-	client := &http.Client{}
-
+// GetOHLCV returns Open, High, Low, Close, Volume data.
+func (c *scrapingClient) GetOHLCV(ctx context.Context, ticker string, opts ...api.CallOption) ([]*api.OHLCV, error) {
 	o := &callOptions{}
 	for _, opt := range opts {
 		opt.Apply(o)
@@ -96,12 +97,12 @@ func (c *scrapingClient) GetOHLCV(ticker string, opts ...api.CallOption) ([]*api
 	var data bytes.Buffer
 	err := json.NewEncoder(&data).Encode(newGetOCHLVRequest(ticker, o))
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to encode OHLCV request: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, origin+getPricesEndpoint, &data)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, origin+getPricesEndpoint, &data)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to create OHLCV request: %w", err)
 	}
 	req.Header.Set("accept", "application/json, text/javascript, */*; q=0.01")
 	req.Header.Set("accept-language", "en-US,en;q=0.9")
@@ -111,9 +112,9 @@ func (c *scrapingClient) GetOHLCV(ticker string, opts ...api.CallOption) ([]*api
 	req.Header.Set("sec-fetch-mode", "cors")
 	req.Header.Set("sec-fetch-site", "same-origin")
 	req.Header.Set("x-requested-with", "XMLHttpRequest")
-	resp, err := client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to send OCHLV request: %w", err)
 	}
 	defer func() {
 		_ = resp.Body.Close()
@@ -123,7 +124,7 @@ func (c *scrapingClient) GetOHLCV(ticker string, opts ...api.CallOption) ([]*api
 	var out getOCHLVResponse
 	err = d.Decode(&out)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to decode OCHLV response: %w", err)
 	}
 
 	/*

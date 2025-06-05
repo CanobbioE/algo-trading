@@ -2,18 +2,20 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
+	"os"
+
 	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
 	"github.com/CanobbioE/algo-trading/pkg/config"
 	"github.com/CanobbioE/algo-trading/pkg/monitor"
+	"github.com/CanobbioE/algo-trading/pkg/printer"
 	"github.com/CanobbioE/algo-trading/pkg/utilities"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 type scanScope struct {
-	cfgFile string
+	p       printer.Printer
 	cfg     *config.Config
+	cfgFile string
 }
 
 func (s *scanScope) preRunE(_ *cobra.Command, _ []string) error {
@@ -36,11 +38,11 @@ func (s *scanScope) preRunE(_ *cobra.Command, _ []string) error {
 	return nil
 }
 
-func (s *scanScope) runE(_ *cobra.Command, _ []string) error {
-	scanner := monitor.NewMarketScanner(s.cfg.Strategies, s.cfg.StockUniverse, s.cfg.Filters, scraping.NewClient())
+func (s *scanScope) runE(cmd *cobra.Command, _ []string) error {
+	scanner := monitor.NewMarketScanner(s.cfg.Strategies, s.cfg.StockUniverse, s.cfg.Filters, scraping.NewClient(), s.p)
 
-	fmt.Println("=== ONE-TIME MARKET SCAN ===")
-	scores, err := scanner.ScanMarket()
+	s.p.Printf("=== ONE-TIME MARKET SCAN ===\n")
+	scores, err := scanner.ScanMarket(cmd.Context())
 	if err != nil {
 		return err
 	}
@@ -50,7 +52,9 @@ func (s *scanScope) runE(_ *cobra.Command, _ []string) error {
 }
 
 func init() {
-	s := &scanScope{}
+	s := &scanScope{
+		p: &printer.Standard{},
+	}
 	scanCmd := &cobra.Command{
 		Use:     "scan",
 		Short:   "Scan the market once",
@@ -59,7 +63,7 @@ func init() {
 		RunE:    s.runE,
 	}
 
-	scanCmd.Flags().StringVarP(&s.cfgFile, "config", "c", "", "path to config file")
+	scanCmd.Flags().StringVarP(&s.cfgFile, "config", "c", "", "Path to config file")
 
 	utilities.Must(scanCmd.MarkFlagRequired("config"))
 	rootCmd.AddCommand(scanCmd)

@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sort"
@@ -8,20 +9,21 @@ import (
 
 	"github.com/CanobbioE/algo-trading/pkg/api"
 	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
+	"github.com/CanobbioE/algo-trading/pkg/printer"
 	"github.com/CanobbioE/algo-trading/pkg/signals"
 	"github.com/CanobbioE/algo-trading/pkg/strategies"
 )
 
-// StockScore represents the analysis result for a single stock
+// StockScore represents the analysis result for a single stock.
 type StockScore struct {
 	Symbol        string
-	BuySignals    int
-	SellSignals   int
+	Reasoning     []string
+	Confidence    float64
 	HoldSignals   int
 	SetupSignals  int
 	WeightedScore float64
-	Confidence    float64
-	Reasoning     []string
+	SellSignals   int
+	BuySignals    int
 	LastPrice     float64
 	Volume        float64
 	MarketCap     float64
@@ -29,29 +31,37 @@ type StockScore struct {
 	Opportunity   OpportunityLevel
 }
 
-// MarketScanner scans multiple stocks and ranks them
+// MarketScanner scans multiple stocks and ranks them.
 type MarketScanner struct {
-	strategies     []*strategies.StrategyWeight
 	client         api.Client
-	stockUniverse  []string
+	p              printer.Printer
 	filters        *ScanFilters
+	strategies     []*strategies.StrategyWeight
+	stockUniverse  []string
 	maxConcurrency int
 }
 
-// NewMarketScanner creates a new market scanner
-func NewMarketScanner(strategies []*strategies.StrategyWeight, stockList []string, filters *ScanFilters, cli api.Client) *MarketScanner {
+// NewMarketScanner creates a new market scanner.
+func NewMarketScanner(
+	strats []*strategies.StrategyWeight,
+	stockList []string,
+	filters *ScanFilters,
+	cli api.Client,
+	p printer.Printer,
+) *MarketScanner {
 	return &MarketScanner{
-		strategies:     strategies,
+		strategies:     strats,
 		client:         cli,
 		stockUniverse:  stockList,
 		maxConcurrency: 10, // Limit concurrent API calls
 		filters:        filters,
+		p:              p,
 	}
 }
 
-// ScanMarket analyzes all stocks in the universe
-func (ms *MarketScanner) ScanMarket() ([]*StockScore, error) {
-	fmt.Printf("Scanning %d stocks...\n", len(ms.stockUniverse))
+// ScanMarket analyzes all stocks in the universe.
+func (ms *MarketScanner) ScanMarket(ctx context.Context) ([]*StockScore, error) {
+	ms.p.PrintColored(printer.Blue, "Scanning %d stocks...\n", len(ms.stockUniverse))
 
 	// Channel to control concurrency
 	semaphore := make(chan struct{}, ms.maxConcurrency)
@@ -70,9 +80,9 @@ func (ms *MarketScanner) ScanMarket() ([]*StockScore, error) {
 			semaphore <- struct{}{}
 			defer func() { <-semaphore }()
 
-			score, err := ms.analyzeStock(sym)
+			score, err := ms.analyzeStock(ctx, sym)
 			if err != nil {
-				errors <- fmt.Errorf("error analyzing %s: %v", sym, err)
+				errors <- fmt.Errorf("error analyzing %s: %w", sym, err)
 				return
 			}
 
@@ -124,10 +134,10 @@ func (ms *MarketScanner) ScanMarket() ([]*StockScore, error) {
 	return filteredScores, nil
 }
 
-// analyzeStock performs strategy analysis on a single stock
-func (ms *MarketScanner) analyzeStock(symbol string) (*StockScore, error) {
+// analyzeStock performs strategy analysis on a single stock.
+func (ms *MarketScanner) analyzeStock(ctx context.Context, symbol string) (*StockScore, error) {
 	// Get stock data
-	data, err := ms.client.GetOHLCV(symbol, &scraping.WithTimeframe{TimeFrame: scraping.Daily})
+	data, err := ms.client.GetOHLCV(ctx, symbol, &scraping.WithTimeframe{TimeFrame: scraping.Daily})
 	if err != nil {
 		return nil, err
 	}
@@ -171,8 +181,8 @@ func (ms *MarketScanner) analyzeStock(symbol string) (*StockScore, error) {
 	return score, nil
 }
 
-// calculateRisk assesses the risk level of a stock
-func (ms *MarketScanner) calculateRisk(data []*api.OHLCV, score *StockScore) RiskLevel {
+// calculateRisk assesses the risk level of a stock.
+func (*MarketScanner) calculateRisk(data []*api.OHLCV, score *StockScore) RiskLevel {
 	if len(data) < 20 {
 		return RiskHigh
 	}
@@ -188,7 +198,7 @@ func (ms *MarketScanner) calculateRisk(data []*api.OHLCV, score *StockScore) Ris
 	for _, change := range priceChanges {
 		avgVolatility += change
 	}
-	avgVolatility = avgVolatility / float64(len(priceChanges))
+	avgVolatility /= float64(len(priceChanges))
 	volatility := avgVolatility * 100 // Convert to percentage
 
 	// Risk assessment based on volatility and other factors
@@ -202,8 +212,8 @@ func (ms *MarketScanner) calculateRisk(data []*api.OHLCV, score *StockScore) Ris
 	}
 }
 
-// calculateOpportunity assesses the opportunity level
-func (ms *MarketScanner) calculateOpportunity(score *StockScore) OpportunityLevel {
+// calculateOpportunity assesses the opportunity level.
+func (*MarketScanner) calculateOpportunity(score *StockScore) OpportunityLevel {
 	// Opportunity based on signal strength and confidence
 	opportunityScore := score.WeightedScore + (score.Confidence * 2)
 
@@ -217,15 +227,15 @@ func (ms *MarketScanner) calculateOpportunity(score *StockScore) OpportunityLeve
 	}
 }
 
-// estimateMarketCap provides a rough market cap estimate
-func (ms *MarketScanner) estimateMarketCap(price, volume float64) float64 {
+// estimateMarketCap provides a rough market cap estimate.
+func (*MarketScanner) estimateMarketCap(price, volume float64) float64 {
 	// This is a very rough estimate - in practice, you'd get this from your data provider
 	// Assuming average shares outstanding based on volume patterns
 	estimatedShares := volume * 50 // Very rough heuristic
 	return price * estimatedShares
 }
 
-// filterResults applies filters to the scan results
+// filterResults applies filters to the scan results.
 func (ms *MarketScanner) filterResults(scores []*StockScore) []*StockScore {
 	var filtered []*StockScore
 
@@ -245,8 +255,8 @@ func (ms *MarketScanner) filterResults(scores []*StockScore) []*StockScore {
 	return filtered
 }
 
-// sortByOpportunity sorts stocks by opportunity score (best first)
-func (ms *MarketScanner) sortByOpportunity(scores []*StockScore) {
+// sortByOpportunity sorts stocks by opportunity score (best first).
+func (*MarketScanner) sortByOpportunity(scores []*StockScore) {
 	sort.Slice(scores, func(i, j int) bool {
 		// Primary sort: Opportunity level
 		if scores[i].Opportunity != scores[j].Opportunity {
@@ -263,30 +273,37 @@ func (ms *MarketScanner) sortByOpportunity(scores []*StockScore) {
 	})
 }
 
-// GenerateReport creates a formatted report of the top opportunities
+// GenerateReport creates a formatted report of the top opportunities.
 func (ms *MarketScanner) GenerateReport(scores []*StockScore, topN int) {
-	fmt.Println("\n=== MARKET SCAN RESULTS ===")
-	fmt.Printf("Found %d stocks meeting criteria\n", len(scores))
-	fmt.Printf("Showing top %d opportunities:\n\n", min(topN, len(scores)))
+	ms.p.Println("\n=== MARKET SCAN RESULTS ===")
+
+	c := printer.None
+	if len(scores) == 0 {
+		c = printer.Red
+	}
+	ms.p.PrintColored(c, "Found %d stocks meeting criteria\n", len(scores))
+	if len(scores) == 0 {
+		return
+	}
+	ms.p.Printf("Showing top %d opportunities:\n\n", min(topN, len(scores)))
 
 	for i, score := range scores {
 		if i >= topN {
 			break
 		}
 
-		fmt.Printf("Rank #%d: %s\n", i+1, score.Symbol)
-		fmt.Printf("  Price: $%.2f\n", score.LastPrice)
-		fmt.Printf("  Signals: %d BUY, %d SELL, %d HOLD\n",
-			score.BuySignals, score.SellSignals, score.HoldSignals)
-		fmt.Printf("  Confidence: %.1f%%\n", score.Confidence*100)
-		fmt.Printf("  Weighted Score: %.2f\n", score.WeightedScore)
-		fmt.Printf("  Risk: %v | Opportunity: %v\n", score.Risk, score.Opportunity)
-		fmt.Printf("  Volume: %.0f\n", score.Volume)
-		fmt.Printf("  Est. Market Cap: $%.2fM\n", score.MarketCap/1000000)
+		ms.p.Printf("Rank #%d: %s\n", i+1, score.Symbol)
+		ms.p.Printf("  Price: $%.2f\n", score.LastPrice)
+		ms.p.Printf("  Signals: %d BUY, %d SELL, %d HOLD\n", score.BuySignals, score.SellSignals, score.HoldSignals)
+		ms.p.Printf("  Confidence: %.1f%%\n", score.Confidence*100)
+		ms.p.Printf("  Weighted Score: %.2f\n", score.WeightedScore)
+		ms.p.Printf("  Risk: %v | Opportunity: %v\n", score.Risk, score.Opportunity)
+		ms.p.Printf("  Volume: %.0f\n", score.Volume)
+		ms.p.Printf("  Est. Market Cap: $%.2fM\n", score.MarketCap/1000000)
 
 		if len(score.Reasoning) > 0 {
-			fmt.Printf("  Reasoning: %s\n", score.Reasoning[0])
+			ms.p.Printf("  Reasoning: %s\n", score.Reasoning[0])
 		}
-		fmt.Println()
+		ms.p.Println("")
 	}
 }

@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
 	"github.com/CanobbioE/algo-trading/pkg/config"
 	"github.com/CanobbioE/algo-trading/pkg/monitor"
 	"github.com/CanobbioE/algo-trading/pkg/printer"
 	"github.com/CanobbioE/algo-trading/pkg/utilities"
-	"github.com/spf13/cobra"
 )
 
 type scanScope struct {
@@ -47,6 +48,7 @@ func (s *scanScope) runE(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
+	// todo make 10 configurable
 	scanner.GenerateReport(scores, 10)
 	return nil
 }

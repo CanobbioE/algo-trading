@@ -5,12 +5,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
 	"github.com/CanobbioE/algo-trading/pkg/config"
 	"github.com/CanobbioE/algo-trading/pkg/monitor"
 	"github.com/CanobbioE/algo-trading/pkg/printer"
 	"github.com/CanobbioE/algo-trading/pkg/utilities"
-	"github.com/spf13/cobra"
 )
 
 type monitorScope struct {
@@ -70,8 +71,9 @@ func (s *monitorScope) runE(cmd *cobra.Command, _ []string) error {
 
 // checkAlerts sends alerts for exceptional opportunities.
 func (s *monitorScope) checkAlerts(scores []*monitor.StockScore) {
+	// TODO: send me an email
 	for _, score := range scores {
-		if score.Opportunity == monitor.OpportunityHigh && score.Risk <= monitor.RiskMedium {
+		if score.Opportunity >= monitor.OpportunityMedium && score.Risk <= monitor.RiskMedium {
 			s.p.PrintColored(printer.Green, "HIGH OPPORTUNITY ALERT: %s (Score: %.2f, Confidence: %.1f%%)\n",
 				score.Symbol, score.WeightedScore, score.Confidence*100)
 		}

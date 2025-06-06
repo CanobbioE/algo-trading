@@ -39,7 +39,6 @@ This document explains each configuration parameter used in the market scanner s
 ### Usage Guidelines:
 - **Diversification**: Include stocks from different sectors and asset classes
 - **Liquidity**: Ensure included instruments have sufficient trading volume
-- **Market Cap**: Mix of large-cap, mid-cap, and small-cap stocks for varied opportunities
 - **Geographic**: Consider different markets and currencies for global exposure
 
 ---
@@ -227,8 +226,6 @@ This document explains each configuration parameter used in the market scanner s
   "max_risk": "HIGH",
   "min_opportunity": "LOW",
   "min_volume": 1000,
-  "min_marketCap": 10000,
-  "max_marketCap": 50000000000,
   "required_signals": 1
 }
 ```
@@ -259,7 +256,7 @@ This document explains each configuration parameter used in the market scanner s
 - **Purpose**: Maximum acceptable risk level
 - **Options**: `"LOW"`, `"MEDIUM"`, `"HIGH"`
 - **Usage**: Filters out stocks above specified risk tolerance
-- **Risk Factors**: Volatility, volume, market cap, sector
+- **Risk Factors**: Volatility, volume, sector
 
 #### `min_opportunity`
 - **Purpose**: Minimum opportunity level required
@@ -275,17 +272,6 @@ This document explains each configuration parameter used in the market scanner s
 - **Usage**: Ensures adequate liquidity for trading
 - **Impact**: Higher values = exclude thinly traded stocks
 
-#### `min_marketCap` / `max_marketCap`
-- **Purpose**: Market capitalization range filter
-- **Range**: $1,000 - $1,000,000,000,000
-- **Usage**: Focus on specific company size ranges
-- **Common Ranges**:
-    - Micro-cap: < $300M
-    - Small-cap: $300M - $2B
-    - Mid-cap: $2B - $10B
-    - Large-cap: $10B - $200B
-    - Mega-cap: > $200B
-
 ---
 
 ## Configuration Examples
@@ -295,10 +281,10 @@ Three sample configurations are provided in the sample-configs folder:
 > Focuses on stable, lower-risk opportunities with a preference for range-bound or mean-reverting behavior and well-capitalized companies.
 
 ### [Aggressive Growth Configuration](../sample-configs/aggressive.json)
-> Focuses on breakout and momentum strategies in high-volatility environments with looser filters for risk and market cap.
+> Focuses on breakout and momentum strategies in high-volatility environments with looser filters for risk.
 
 ### [Value Investing Configuration](../sample-configs/value.json)
-> Targets undervalued, stable stocks using VWAP and mean-reversion with high-confidence, low-risk, and larger-cap filters.
+> Targets undervalued, stable stocks using VWAP and mean-reversion with high-confidence and low-risk filters.
 
 
 ---
@@ -315,7 +301,6 @@ Three sample configurations are provided in the sample-configs folder:
 - Increase MEANREVERSION strategy weight
 - Higher `min_confidence` requirements
 - Lower maximum risk tolerance
-- Focus on larger market cap stocks
 
 ### For Volatile Markets:
 - Increase BOLLINGER strategy weight

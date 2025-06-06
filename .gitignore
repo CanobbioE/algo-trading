@@ -27,3 +27,6 @@ go.work.sum
 
 # config files
 *.config.json
+
+# tmp files
+.private/*

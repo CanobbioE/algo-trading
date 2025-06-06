@@ -13,8 +13,6 @@ type ScanFilters struct {
 	MaxRisk          RiskLevel        `json:"max_risk"`
 	MinOpportunity   OpportunityLevel `json:"min_opportunity"`
 	MinVolume        float64          `json:"min_volume"`
-	MinMarketCap     float64          `json:"min_market_cap"`
-	MaxMarketCap     float64          `json:"max_market_cap"`
 	RequiredSignals  int              `json:"required_signals"`
 }
 

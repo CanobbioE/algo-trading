@@ -3,9 +3,9 @@ package monitor
 import (
 	"context"
 	"fmt"
-	"log"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/CanobbioE/algo-trading/pkg/api"
 	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
@@ -26,7 +26,6 @@ type StockScore struct {
 	BuySignals    int
 	LastPrice     float64
 	Volume        float64
-	MarketCap     float64
 	Risk          RiskLevel
 	Opportunity   OpportunityLevel
 }
@@ -53,7 +52,7 @@ func NewMarketScanner(
 		strategies:     strats,
 		client:         cli,
 		stockUniverse:  stockList,
-		maxConcurrency: 10, // Limit concurrent API calls
+		maxConcurrency: 5, // Limit concurrent API calls
 		filters:        filters,
 		p:              p,
 	}
@@ -87,6 +86,8 @@ func (ms *MarketScanner) ScanMarket(ctx context.Context) ([]*StockScore, error) 
 			}
 
 			results <- score
+			// prevent getting timed out
+			time.Sleep(150 * time.Millisecond)
 		}(symbol)
 	}
 
@@ -124,10 +125,11 @@ func (ms *MarketScanner) ScanMarket(ctx context.Context) ([]*StockScore, error) 
 
 	// Log errors but don't fail the entire scan
 	for _, err := range scanErrors {
-		log.Printf("Scan error: %v", err)
+		ms.p.PrintColored(printer.Red, "Scan error: %v\n", err)
 	}
 
 	// Filter and sort results
+	ms.p.Printf("Filtering %d results...\n", len(scores))
 	filteredScores := ms.filterResults(scores)
 	ms.sortByOpportunity(filteredScores)
 
@@ -171,12 +173,11 @@ func (ms *MarketScanner) analyzeStock(ctx context.Context, symbol string) (*Stoc
 	score.HoldSignals = signalCounts[signals.NoOp]
 	score.SetupSignals = signalCounts[signals.Setup]
 	score.WeightedScore = weightedScores[signals.Buy] - weightedScores[signals.Sell]
-	score.Confidence = float64(score.BuySignals) / float64(len(ms.strategies))
+	score.Confidence = (float64(score.BuySignals) + 0.5*float64(score.SetupSignals)) / float64(len(ms.strategies))
 	score.Reasoning = reasoning
 
 	score.Risk = ms.calculateRisk(data, score)
 	score.Opportunity = ms.calculateOpportunity(score)
-	score.MarketCap = ms.estimateMarketCap(score.LastPrice, score.Volume)
 
 	return score, nil
 }
@@ -227,14 +228,6 @@ func (*MarketScanner) calculateOpportunity(score *StockScore) OpportunityLevel {
 	}
 }
 
-// estimateMarketCap provides a rough market cap estimate.
-func (*MarketScanner) estimateMarketCap(price, volume float64) float64 {
-	// This is a very rough estimate - in practice, you'd get this from your data provider
-	// Assuming average shares outstanding based on volume patterns
-	estimatedShares := volume * 50 // Very rough heuristic
-	return price * estimatedShares
-}
-
 // filterResults applies filters to the scan results.
 func (ms *MarketScanner) filterResults(scores []*StockScore) []*StockScore {
 	var filtered []*StockScore
@@ -245,9 +238,8 @@ func (ms *MarketScanner) filterResults(scores []*StockScore) []*StockScore {
 			score.Risk <= ms.filters.MaxRisk &&
 			score.Opportunity >= ms.filters.MinOpportunity &&
 			score.Volume >= ms.filters.MinVolume &&
-			score.MarketCap >= ms.filters.MinMarketCap &&
-			score.MarketCap <= ms.filters.MaxMarketCap &&
-			score.BuySignals >= ms.filters.RequiredSignals {
+			(score.BuySignals >= ms.filters.RequiredSignals ||
+				score.SetupSignals >= ms.filters.RequiredSignals) {
 			filtered = append(filtered, score)
 		}
 	}
@@ -277,14 +269,11 @@ func (*MarketScanner) sortByOpportunity(scores []*StockScore) {
 func (ms *MarketScanner) GenerateReport(scores []*StockScore, topN int) {
 	ms.p.Println("\n=== MARKET SCAN RESULTS ===")
 
-	c := printer.None
 	if len(scores) == 0 {
-		c = printer.Red
-	}
-	ms.p.PrintColored(c, "Found %d stocks meeting criteria\n", len(scores))
-	if len(scores) == 0 {
+		ms.p.PrintColored(printer.Red, "No stock is meeting filter criteria.\n", len(scores))
 		return
 	}
+	ms.p.PrintColored(printer.Green, "Found %d stocks meeting criteria\n", len(scores))
 	ms.p.Printf("Showing top %d opportunities:\n\n", min(topN, len(scores)))
 
 	for i, score := range scores {
@@ -292,14 +281,43 @@ func (ms *MarketScanner) GenerateReport(scores []*StockScore, topN int) {
 			break
 		}
 
+		var (
+			buy   = printer.WrapInColor("BUY", printer.Green)
+			sell  = printer.WrapInColor("SELL", printer.Blue)
+			hold  = printer.WrapInColor("HOLD", printer.White)
+			setup = printer.WrapInColor("SETUP", printer.Yellow)
+
+			riskColor, oppColor printer.Color
+		)
+
+		switch score.Risk {
+		case RiskHigh:
+			riskColor = printer.Red
+		case RiskMedium:
+			riskColor = printer.Yellow
+		case RiskLow:
+			riskColor = printer.Green
+		}
+		switch score.Opportunity {
+		case OpportunityLow:
+			oppColor = printer.Red
+		case OpportunityMedium:
+			oppColor = printer.Yellow
+		case OpportunityHigh:
+			oppColor = printer.Green
+		}
+
+		risk := printer.WrapInColor(score.Risk.String(), riskColor)
+		opp := printer.WrapInColor(score.Opportunity.String(), oppColor)
 		ms.p.Printf("Rank #%d: %s\n", i+1, score.Symbol)
+		ms.p.Println("----------------")
 		ms.p.Printf("  Price: $%.2f\n", score.LastPrice)
-		ms.p.Printf("  Signals: %d BUY, %d SELL, %d HOLD\n", score.BuySignals, score.SellSignals, score.HoldSignals)
+		ms.p.Printf("  Signals: %d "+buy+", %d "+sell+", %d "+hold+", %d "+setup+"\n",
+			score.BuySignals, score.SellSignals, score.HoldSignals, score.SetupSignals)
 		ms.p.Printf("  Confidence: %.1f%%\n", score.Confidence*100)
 		ms.p.Printf("  Weighted Score: %.2f\n", score.WeightedScore)
-		ms.p.Printf("  Risk: %v | Opportunity: %v\n", score.Risk, score.Opportunity)
+		ms.p.Printf("  Risk: " + risk + " | Opportunity: " + opp + "\n")
 		ms.p.Printf("  Volume: %.0f\n", score.Volume)
-		ms.p.Printf("  Est. Market Cap: $%.2fM\n", score.MarketCap/1000000)
 
 		if len(score.Reasoning) > 0 {
 			ms.p.Printf("  Reasoning: %s\n", score.Reasoning[0])

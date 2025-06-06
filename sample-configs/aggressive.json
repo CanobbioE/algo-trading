@@ -45,8 +45,6 @@
     "max_risk": "HIGH",
     "min_opportunity": "HIGH",
     "min_volume": 1000,
-    "min_marketCap": 50000000,
-    "max_marketCap": 50000000000,
     "required_signals": 1
   }
 }

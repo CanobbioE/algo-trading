@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/CanobbioE/algo-trading/pkg/printer"
 	"github.com/spf13/cobra"
+
+	"github.com/CanobbioE/algo-trading/pkg/printer"
 )
 
 var rootCmd = &cobra.Command{

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/CanobbioE/algo-trading/pkg/api"
 	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
 	"github.com/CanobbioE/algo-trading/pkg/config"
@@ -16,7 +18,6 @@ import (
 	"github.com/CanobbioE/algo-trading/pkg/signals"
 	"github.com/CanobbioE/algo-trading/pkg/strategies"
 	"github.com/CanobbioE/algo-trading/pkg/utilities"
-	"github.com/spf13/cobra"
 )
 
 type analysisScope struct {
@@ -92,7 +93,8 @@ func (s *analysisScope) runE(cmd *cobra.Command, _ []string) error {
 			strings.ToUpper(s.ticker), s.refreshRate)
 		time.Sleep(1 * time.Second)
 		s.p.Reset()
-		watchList := monitor.NewWatchList(s.p.CleanLine(), s.refreshRate)
+		s.p = s.p.CleanLine()
+		watchList := monitor.NewWatchList(s.p, s.refreshRate)
 		go watchList.StartMonitoring(func() error {
 			return s.analyse(ctx, cli)
 		})
@@ -121,9 +123,9 @@ func (s *analysisScope) analyse(ctx context.Context, cli api.Client) error {
 		m[operation]++
 	}
 
-	s.p.CleanLine().Reset()
+	s.p.Reset()
 	strategies.NewAnalysisInput(s.p.CleanLine(), s.cfg.Strategies...).GenerateAnalysis()
-	s.p.CleanLine().Printf("Sentiment is:\n")
+	s.p.Printf("Sentiment is:\n")
 	s.printSentiment(signals.Buy, m)
 	s.printSentiment(signals.Sell, m)
 	s.printSentiment(signals.Setup, m)
@@ -135,8 +137,7 @@ func (s *analysisScope) printSentiment(k signals.Operation, m map[signals.Operat
 	var c printer.Color
 	v, ok := m[k]
 	if !ok {
-		s.p.CleanLine().Println("")
-		return
+		v = 0
 	}
 	switch k {
 	case signals.Buy:
@@ -149,5 +150,5 @@ func (s *analysisScope) printSentiment(k signals.Operation, m map[signals.Operat
 		c = printer.White
 	}
 	key := printer.WrapInColor(strings.ToUpper(string(k)), c)
-	s.p.CleanLine().Printf(key+":\t%2.f%%\n", float32(v)/float32(len(s.cfg.Strategies))*100)
+	s.p.Printf(key+":\t%2.f%%\n", float32(v)/float32(len(s.cfg.Strategies))*100)
 }

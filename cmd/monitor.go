@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/CanobbioE/stock-market-clients/carnost"
 	"github.com/spf13/cobra"
 
-	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
 	"github.com/CanobbioE/algo-trading/pkg/config"
 	"github.com/CanobbioE/algo-trading/pkg/monitor"
 	"github.com/CanobbioE/algo-trading/pkg/printer"
@@ -43,7 +43,7 @@ func (s *monitorScope) preRunE(_ *cobra.Command, _ []string) error {
 }
 
 func (s *monitorScope) runE(cmd *cobra.Command, _ []string) error {
-	scanner := monitor.NewMarketScanner(s.cfg.Strategies, s.cfg.StockUniverse, s.cfg.Filters, scraping.NewClient(), s.p)
+	scanner := monitor.NewMarketScanner(s.cfg.Strategies, s.cfg.StockUniverse, s.cfg.Filters, carnost.NewClient(), s.p)
 
 	watchList := monitor.NewWatchList(s.p, s.refreshRate)
 	s.p.PrintColored(printer.Blue, "Starting market monitoring (updates every %v)\n", s.refreshRate)

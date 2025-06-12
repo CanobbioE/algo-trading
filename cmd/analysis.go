@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CanobbioE/stock-market-clients/api"
+	"github.com/CanobbioE/stock-market-clients/carnost"
 	"github.com/spf13/cobra"
 
-	"github.com/CanobbioE/algo-trading/pkg/api"
-	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
 	"github.com/CanobbioE/algo-trading/pkg/config"
 	"github.com/CanobbioE/algo-trading/pkg/monitor"
 	"github.com/CanobbioE/algo-trading/pkg/printer"
@@ -77,7 +77,7 @@ func (s *analysisScope) preRunE(_ *cobra.Command, _ []string) error {
 }
 
 func (s *analysisScope) runE(cmd *cobra.Command, _ []string) error {
-	cli := scraping.NewClient()
+	cli := carnost.NewClient()
 	ctx := cmd.Context()
 
 	switch s.mode {
@@ -107,7 +107,7 @@ func (s *analysisScope) runE(cmd *cobra.Command, _ []string) error {
 }
 
 func (s *analysisScope) analyse(ctx context.Context, cli api.Client) error {
-	data, err := cli.GetOHLCV(ctx, s.ticker, &scraping.WithTimeframe{TimeFrame: scraping.TimeFrame(s.timeFrame)})
+	data, err := cli.GetOHLCV(ctx, s.ticker, &carnost.WithTimeframe{TimeFrame: carnost.TimeFrame(s.timeFrame)})
 	if err != nil {
 		return err
 	}

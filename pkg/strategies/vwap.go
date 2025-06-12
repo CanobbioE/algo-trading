@@ -1,7 +1,8 @@
 package strategies
 
 import (
-	"github.com/CanobbioE/algo-trading/pkg/api"
+	"github.com/CanobbioE/stock-market-clients/api"
+
 	"github.com/CanobbioE/algo-trading/pkg/signals"
 )
 

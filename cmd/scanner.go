@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/CanobbioE/stock-market-clients/carnost"
 	"github.com/spf13/cobra"
 
-	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
 	"github.com/CanobbioE/algo-trading/pkg/config"
 	"github.com/CanobbioE/algo-trading/pkg/monitor"
 	"github.com/CanobbioE/algo-trading/pkg/printer"
@@ -40,7 +40,7 @@ func (s *scanScope) preRunE(_ *cobra.Command, _ []string) error {
 }
 
 func (s *scanScope) runE(cmd *cobra.Command, _ []string) error {
-	scanner := monitor.NewMarketScanner(s.cfg.Strategies, s.cfg.StockUniverse, s.cfg.Filters, scraping.NewClient(), s.p)
+	scanner := monitor.NewMarketScanner(s.cfg.Strategies, s.cfg.StockUniverse, s.cfg.Filters, carnost.NewClient(), s.p)
 
 	s.p.Printf("=== ONE-TIME MARKET SCAN ===\n")
 	scores, err := scanner.ScanMarket(cmd.Context())

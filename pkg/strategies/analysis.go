@@ -3,7 +3,8 @@ package strategies
 import (
 	"math"
 
-	"github.com/CanobbioE/algo-trading/pkg/api"
+	"github.com/CanobbioE/stock-market-clients/api"
+
 	"github.com/CanobbioE/algo-trading/pkg/printer"
 	"github.com/CanobbioE/algo-trading/pkg/signals"
 	"github.com/CanobbioE/algo-trading/pkg/utilities"

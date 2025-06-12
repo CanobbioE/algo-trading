@@ -7,8 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CanobbioE/algo-trading/pkg/api"
-	"github.com/CanobbioE/algo-trading/pkg/api/scraping"
+	"github.com/CanobbioE/stock-market-clients/api"
+	"github.com/CanobbioE/stock-market-clients/carnost"
+
 	"github.com/CanobbioE/algo-trading/pkg/printer"
 	"github.com/CanobbioE/algo-trading/pkg/signals"
 	"github.com/CanobbioE/algo-trading/pkg/strategies"
@@ -139,7 +140,7 @@ func (ms *MarketScanner) ScanMarket(ctx context.Context) ([]*StockScore, error) 
 // analyzeStock performs strategy analysis on a single stock.
 func (ms *MarketScanner) analyzeStock(ctx context.Context, symbol string) (*StockScore, error) {
 	// Get stock data
-	data, err := ms.client.GetOHLCV(ctx, symbol, &scraping.WithTimeframe{TimeFrame: scraping.Daily})
+	data, err := ms.client.GetOHLCV(ctx, symbol, &carnost.WithTimeframe{TimeFrame: carnost.Daily})
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +271,7 @@ func (ms *MarketScanner) GenerateReport(scores []*StockScore, topN int) {
 	ms.p.Println("\n=== MARKET SCAN RESULTS ===")
 
 	if len(scores) == 0 {
-		ms.p.PrintColored(printer.Red, "No stock is meeting filter criteria.\n", len(scores))
+		ms.p.PrintColored(printer.Red, "No stock is meeting filter criteria.\n")
 		return
 	}
 	ms.p.PrintColored(printer.Green, "Found %d stocks meeting criteria\n", len(scores))
@@ -311,7 +312,7 @@ func (ms *MarketScanner) GenerateReport(scores []*StockScore, topN int) {
 		opp := printer.WrapInColor(score.Opportunity.String(), oppColor)
 		ms.p.Printf("Rank #%d: %s\n", i+1, score.Symbol)
 		ms.p.Println("----------------")
-		ms.p.Printf("  Price: $%.2f\n", score.LastPrice)
+		ms.p.Printf("  Price: €%.2f\n", score.LastPrice)
 		ms.p.Printf("  Signals: %d "+buy+", %d "+sell+", %d "+hold+", %d "+setup+"\n",
 			score.BuySignals, score.SellSignals, score.HoldSignals, score.SetupSignals)
 		ms.p.Printf("  Confidence: %.1f%%\n", score.Confidence*100)

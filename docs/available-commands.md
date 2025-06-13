@@ -22,6 +22,9 @@ Key Technical Signals:
         -> Consider selling (price near or above upper band)
 - ATR: 0.0000
         -> Volatility is low
+- MACD shows bearish momentum.
+        -> Momentum strength is weak with MACD above the zero line (hold bias).
+        -> Consider selling (if confirmed by other indicators)
 ======================
 Sentiment is:
 BUY:     0%

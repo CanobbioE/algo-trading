@@ -213,6 +213,27 @@ This document explains each configuration parameter used in the market scanner s
     - `2.5`: Wide bands (99% of price action)
 - **Impact**: Higher values = wider bands, fewer signals, higher confidence
 
+### `macd_params`
+```json
+  "macd_params": {
+    "fast_period": 12,
+    "slow_period": 26,
+    "signal_period": 9,
+    "trigger_distance": 0.02
+  },
+```
+- **Purpose**: Defines the behavior and sensitivity of the MACD (Moving Average Convergence Divergence) strategy.
+- **Components**:
+  - `fast_period`: Period of the short-term exponential moving average (EMA). 
+  - `slow_period`: Period of the long-term EMA.
+  - `signal_period`: EMA period used to smooth the MACD line.
+  - `trigger_distance`: Minimum absolute difference required between MACD and Signal line to validate a crossover.
+- **Standard Values**:
+  - `fast_period` = 12, `slow_period` = 26, `signal_period` = 9
+  - `trigger_distance` = 0.01: Requires at least 1% divergence between MACD and Signal to confirm crossover.
+- **Impact**: Shorter periods and smaller distances increase sensitivity; longer periods and higher distances improve signal quality.
+
+
 ---
 
 ## Scan Filters

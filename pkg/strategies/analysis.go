@@ -1,6 +1,7 @@
 package strategies
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/CanobbioE/stock-market-clients/api"
@@ -41,6 +42,7 @@ type Analysis struct {
 	*mrAnalysis
 	*breakoutAnalysis
 	*bbAnalysis
+	*macdAnalysis
 	p printer.Printer
 }
 
@@ -59,6 +61,8 @@ func NewAnalysisInput(p printer.Printer, results ...*StrategyWeight) *Analysis {
 			out.breakoutAnalysis = utilities.DefaultPointer(s.analysis)
 		case *BollingerBandSqueezeStrategy:
 			out.bbAnalysis = utilities.DefaultPointer(s.analysis)
+		case *MACDStrategy:
+			out.macdAnalysis = utilities.DefaultPointer(s.analysis)
 		}
 	}
 
@@ -98,6 +102,9 @@ func (in *Analysis) GenerateAnalysis() {
 
 	// ATR
 	in.p.Printf("- ATR: %.4f\n\t-> Volatility is %s\n", in.atr, volatilityStatus(in.atr, in.width))
+
+	// MACD
+	in.p.Println(macdSuggestion(in.prevDelta, in.delta, in.triggerDistance))
 	in.p.Println("======================")
 }
 
@@ -178,4 +185,58 @@ func bollingerSuggestion(currentPrice, upper, lower float64) string {
 	default:
 		return "Hold (price within bands)"
 	}
+}
+
+func macdSuggestion(prevDelta, delta, triggerDistance float64) string {
+	var (
+		crossover  string
+		suggestion string
+	)
+	switch {
+	case prevDelta < 0 && delta > 0:
+		crossover = "MACD crossover: " + printer.WrapInColor("Bullish", printer.Green) +
+			" signal detected (MACD crossed above signal line)."
+		suggestion = printer.WrapInColor("Consider buying", printer.Green)
+	case prevDelta > 0 && delta < 0:
+		crossover = "MACD crossover: " + printer.WrapInColor("Bearish", printer.Red) +
+			" signal detected (MACD crossed below signal line)."
+		suggestion = printer.WrapInColor("Consider selling", printer.Blue)
+	case delta > 0:
+		crossover = "MACD shows " + printer.WrapInColor("bullish", printer.Green) + " momentum."
+		suggestion = printer.WrapInColor("Consider buying", printer.Yellow) + " (if confirmed by other indicators)"
+	case delta < 0:
+		crossover = "MACD shows " + printer.WrapInColor("bearish", printer.Red) + " momentum."
+		suggestion = printer.WrapInColor("Consider selling", printer.Blue) + " (if confirmed by other indicators)"
+	default:
+		crossover = "MACD is neutral, showing no significant momentum or crossover."
+		suggestion = "Hold"
+	}
+
+	if delta == 0 {
+		return crossover
+	}
+
+	str := "weak"
+	dir := "below"
+	if math.Abs(triggerDistance) > 0.5 {
+		str = "strong"
+	}
+	if triggerDistance > 0 {
+		dir = "above"
+	}
+
+	var bias string
+	switch {
+	case str == "strong" && dir == "above":
+		bias = printer.WrapInColor("buy", printer.Green)
+	case str == "strong":
+		bias = printer.WrapInColor("sell", printer.Blue)
+	case dir == "above":
+		bias = "hold"
+	default:
+		bias = printer.WrapInColor("caution", printer.Yellow)
+	}
+
+	return fmt.Sprintf("- %s\n\t-> Momentum strength is %s with MACD %s the zero line (%s bias).\n\t-> %s",
+		crossover, str, dir, bias, suggestion)
 }

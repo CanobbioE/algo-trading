@@ -11,6 +11,7 @@ import (
 // Config is the project configuration.
 type Config struct {
 	Thresholds           *strategies.Thresholds       `json:"thresholds"`
+	MACDParams           *strategies.MACDParams       `json:"macd_params"`
 	Filters              *monitor.ScanFilters         `json:"filters"`
 	StockUniverse        []string                     `json:"stock_universe"`
 	Strategies           []*strategies.StrategyWeight `json:"strategies"`
@@ -20,6 +21,7 @@ type Config struct {
 
 type rawCfg struct {
 	Thresholds           *strategies.Thresholds `json:"thresholds"`
+	MACDParams           *strategies.MACDParams `json:"macd_params"`
 	ScanFilters          *monitor.ScanFilters   `json:"scan_filters"`
 	Strategies           []*rawStrategies       `json:"strategies"`
 	StockUniverse        []string               `json:"stock_universe"`
@@ -43,6 +45,7 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 	c.BollingerCoefficient = raw.BollingerCoefficient
 	c.StockUniverse = raw.StockUniverse
 	c.LookBack = raw.LookBack
+	c.MACDParams = raw.MACDParams
 
 	for _, str := range raw.Strategies {
 		var s strategies.Strategy
@@ -55,6 +58,8 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 			s = strategies.NewMeanReversionStrategy(c.LookBack, c.Thresholds.Deviation)
 		case "BOLLINGER", "bollinger":
 			s = strategies.NewBollingerBandSqueezeStrategy(c.LookBack, c.BollingerCoefficient, c.Thresholds.Squeeze)
+		case "MACD", "macd":
+			s = strategies.NewMACDStrategy(c.MACDParams)
 		}
 		c.Strategies = append(c.Strategies, &strategies.StrategyWeight{
 			Weight:   str.Weight,

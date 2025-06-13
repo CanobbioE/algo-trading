@@ -37,6 +37,12 @@
     "deviation": 0.02,
     "squeeze": 0.12
   },
+  "macd_params": {
+    "fast_period": 8,
+    "slow_period": 34,
+    "signal_period": 9,
+    "trigger_distance": 0.015
+  },
   "lookback": 5,
   "bollinger_coefficient": 2.2,
   "scan_filters": {

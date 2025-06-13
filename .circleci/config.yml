@@ -17,9 +17,17 @@ jobs:
     executor: go-executor
     steps:
       - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:5cXrAzbjuZsbi6fCLIPU9XTddSqyuypQqChhB4Kj7jA"
       - run:
           name: Install Linters
           command: make install-tools
+      - run:
+          name: Configure Git for SSH
+          command: |
+            git config --global url."git@github.com:".insteadOf "https://github.com/"
+            go env -w GOPRIVATE=github.com/CanobbioE/*
       - run:
           name: Run Linters
           command: make lint

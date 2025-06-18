@@ -13,14 +13,15 @@ import (
 
 // Thresholds collects all the shared limits for the various strategies.
 type Thresholds struct {
-	AtrPeriod        int     `json:"atr_period"`
-	LowATRThreshold  float64 `json:"low_atr_threshold"`
-	HighATRThreshold float64 `json:"high_atr_threshold"`
-	LowLookback      int     `json:"low_lookback"`
-	HighLookback     int     `json:"high_lookback"`
-	VolumeThreshold  float64 `json:"volume_threshold"`
-	Deviation        float64 `json:"deviation"`
-	Squeeze          float64 `json:"squeeze"`
+	AtrPeriod         int     `json:"atr_period"`
+	LowATRThreshold   float64 `json:"low_atr_threshold"`
+	HighATRThreshold  float64 `json:"high_atr_threshold"`
+	LowLookback       int     `json:"low_lookback"`
+	HighLookback      int     `json:"high_lookback"`
+	VolumeThreshold   float64 `json:"volume_threshold"`
+	Deviation         float64 `json:"deviation"`
+	Squeeze           float64 `json:"squeeze"`
+	MinMomentumReturn float64 `json:"min_momentum_return"`
 }
 
 // Strategy is the common interface for all strategies.
@@ -43,6 +44,7 @@ type Analysis struct {
 	*breakoutAnalysis
 	*bbAnalysis
 	*macdAnalysis
+	*momentumAnalysis
 	p printer.Printer
 }
 
@@ -63,6 +65,8 @@ func NewAnalysisInput(p printer.Printer, results ...*StrategyWeight) *Analysis {
 			out.bbAnalysis = utilities.DefaultPointer(s.analysis)
 		case *MACDStrategy:
 			out.macdAnalysis = utilities.DefaultPointer(s.analysis)
+		case *MomentumStrategy:
+			out.momentumAnalysis = utilities.DefaultPointer(s.analysis)
 		}
 	}
 
@@ -105,6 +109,10 @@ func (in *Analysis) GenerateAnalysis() {
 
 	// MACD
 	in.p.Println(macdSuggestion(in.prevDelta, in.delta, in.triggerDistance))
+
+	// Momentum
+	in.p.Printf("- Found a %.2f%% price change in the last %d periods\n\t -> %s\n",
+		in.change*100, in.period, momentumStatus(in.change))
 	in.p.Println("======================")
 }
 
@@ -239,4 +247,25 @@ func macdSuggestion(prevDelta, delta, triggerDistance float64) string {
 
 	return fmt.Sprintf("- %s\n\t-> Momentum strength is %s with MACD %s the zero line (%s bias).\n\t-> %s",
 		crossover, str, dir, bias, suggestion)
+}
+
+func momentumStatus(change float64) string {
+	var direction string
+	switch {
+	case change > 0.05:
+		direction = printer.WrapInColor("strong upward", printer.Green)
+	case change > 0.02:
+		direction = printer.WrapInColor("moderate upward", printer.Green)
+	case change > 0:
+		direction = printer.WrapInColor("slight upward", printer.Green)
+	case change < -0.05:
+		direction = printer.WrapInColor("strong downward", printer.Red)
+	case change < -0.02:
+		direction = printer.WrapInColor("moderate downward", printer.Red)
+	case change < 0:
+		direction = printer.WrapInColor("slight downward", printer.Red)
+	default:
+		direction = "no significant"
+	}
+	return "Indicates a " + direction + " momentum."
 }

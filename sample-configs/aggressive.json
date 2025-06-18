@@ -25,9 +25,13 @@
     {
       "strategy": "BOLLINGER",
       "weight": 1.2
+    },
+    {
+      "strategy": "MOMENTUM",
+      "weight": 1.8
     }
   ],
-  "thresholds": {
+  "HIGHthresholds": {
     "atr_period": 3,
     "low_atr_threshold": 0.07,
     "high_atr_threshold": 0.4,
@@ -35,7 +39,8 @@
     "high_lookback": 3,
     "volume_threshold": 1.0,
     "deviation": 0.03,
-    "squeeze": 0.07
+    "squeeze": 0.07,
+    "min_momentum_return": 0.03
   },
   "macd_params": {
     "fast_period": 6,
@@ -44,6 +49,7 @@
     "trigger_distance": 0.005
   },
   "lookback": 3,
+  "momentum_lookback":  8,
   "bollinger_coefficient": 1.8,
   "scan_filters": {
     "min_confidence": 0.4,

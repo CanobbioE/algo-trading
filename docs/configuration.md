@@ -90,6 +90,16 @@ This document explains each configuration parameter used in the market scanner s
 - **Best For**: Volatility-based trading, squeeze patterns
 - **Signals**: BUY on band squeezes or bounces off lower band
 
+#### MACD (Moving Average Convergence Divergence)
+- **Purpose**: Detects trend shifts and momentum changes using moving average crossovers.
+- **Best For**: Spotting medium-to-long-term trend reversals with confirmation.
+- **Signals**: BUY when MACD line crosses above the signal line and exceeds trigger_distance, SELL when it crosses below and distance is significant.
+
+#### MOMENTUM
+- **Purpose**: Identifies sustained price movement over a defined period to capture trending assets.
+- **Best For**: Fast-moving markets, breakout confirmation, short- to mid-term trades.
+- **Signals**: BUY when return over lookback period exceeds min_momentum_return.
+
 ### Weight Configuration:
 - **Range**: 0.1 to 5.0 (typically)
 - **Equal Weights (1.0)**: All strategies have equal influence
@@ -122,7 +132,8 @@ This document explains each configuration parameter used in the market scanner s
   "high_lookback": 3,
   "volume_threshold": 1.2,
   "deviation": 0.02,
-  "squeeze": 0.1
+  "squeeze": 0.1,
+  "min_momentum_return": 0.07
 }
 ```
 
@@ -188,6 +199,13 @@ This document explains each configuration parameter used in the market scanner s
 - **Impact**: Lower values = more sensitive squeeze detection
 - **Default**: 0.1 (bands must be within 10% of normal width)
 
+#### `min_momentum_return`
+- **Purpose**: Defines the minimum price change over the lookback period required to trigger a momentum signal.
+- **Range**: 0.01–0.10 
+- **Usage**: Filters out weak trends; only considers assets with sufficient directional movement.
+- **Impact**: Lower values generate more signals with weaker trends; higher values ensure stronger momentum but reduce signal frequency.
+- **Default**: 0.05 (5%)
+
 ---
 
 ## General Parameters
@@ -212,6 +230,22 @@ This document explains each configuration parameter used in the market scanner s
     - `2.0`: Standard bands (95% of price action)
     - `2.5`: Wide bands (99% of price action)
 - **Impact**: Higher values = wider bands, fewer signals, higher confidence
+
+### momentum_look_back
+```json
+"momentum_look_back": 14
+```
+- **Purpose**: Defines the number of periods over which the price change is calculated to evaluate momentum strength.
+- **Range**: 7-30
+- **Standard Values**:
+  - `7`: Very short-term momentum, highly sensitive to recent moves
+  - `15`: Balanced view of short- to mid-term trends
+  - `30`: Long-term momentum, slower but more stable signals
+- **Impact**: 
+  - Lower values generate faster, more reactive signals but increase noise and false positives.
+  - Higher values smooth out short-term fluctuations, reducing noise but introducing signal lag.
+
+
 
 ### `macd_params`
 ```json

@@ -16,6 +16,7 @@ type Config struct {
 	StockUniverse        []string                     `json:"stock_universe"`
 	Strategies           []*strategies.StrategyWeight `json:"strategies"`
 	LookBack             int                          `json:"lookback"`
+	MomentumLookBack     int                          `json:"momentum_look_back"`
 	BollingerCoefficient float64                      `json:"bollinger_coefficient"`
 }
 
@@ -26,6 +27,7 @@ type rawCfg struct {
 	Strategies           []*rawStrategies       `json:"strategies"`
 	StockUniverse        []string               `json:"stock_universe"`
 	LookBack             int                    `json:"lookback"`
+	MomentumLookBack     int                    `json:"momentum_lookback"`
 	BollingerCoefficient float64                `json:"bollinger_coefficient"`
 }
 
@@ -46,6 +48,7 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 	c.StockUniverse = raw.StockUniverse
 	c.LookBack = raw.LookBack
 	c.MACDParams = raw.MACDParams
+	c.MomentumLookBack = raw.MomentumLookBack
 
 	for _, str := range raw.Strategies {
 		var s strategies.Strategy
@@ -60,6 +63,8 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 			s = strategies.NewBollingerBandSqueezeStrategy(c.LookBack, c.BollingerCoefficient, c.Thresholds.Squeeze)
 		case "MACD", "macd":
 			s = strategies.NewMACDStrategy(c.MACDParams)
+		case "MOMENTUM", "momentum":
+			s = strategies.NewMomentumStrategy(c.MomentumLookBack, c.Thresholds)
 		}
 		c.Strategies = append(c.Strategies, &strategies.StrategyWeight{
 			Weight:   str.Weight,

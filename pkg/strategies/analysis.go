@@ -211,7 +211,7 @@ func macdSuggestion(prevDelta, delta, triggerDistance float64) string {
 		suggestion = printer.WrapInColor("Consider selling", printer.Blue)
 	case delta > 0:
 		crossover = "MACD shows " + printer.WrapInColor("bullish", printer.Green) + " momentum."
-		suggestion = printer.WrapInColor("Consider buying", printer.Yellow) + " (if confirmed by other indicators)"
+		suggestion = printer.WrapInColor("Consider buying", printer.Green) + " (if confirmed by other indicators)"
 	case delta < 0:
 		crossover = "MACD shows " + printer.WrapInColor("bearish", printer.Red) + " momentum."
 		suggestion = printer.WrapInColor("Consider selling", printer.Blue) + " (if confirmed by other indicators)"
@@ -236,12 +236,15 @@ func macdSuggestion(prevDelta, delta, triggerDistance float64) string {
 	var bias string
 	switch {
 	case str == "strong" && dir == "above":
+		str = printer.WrapInColor(str, printer.Green)
 		bias = printer.WrapInColor("buy", printer.Green)
 	case str == "strong":
+		str = printer.WrapInColor(str, printer.Blue)
 		bias = printer.WrapInColor("sell", printer.Blue)
 	case dir == "above":
 		bias = "hold"
 	default:
+		str = printer.WrapInColor(str, printer.Yellow)
 		bias = printer.WrapInColor("caution", printer.Yellow)
 	}
 

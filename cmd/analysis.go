@@ -12,6 +12,7 @@ import (
 	"github.com/CanobbioE/stock-market-clients/carnost"
 	"github.com/spf13/cobra"
 
+	"github.com/CanobbioE/algo-trading/pkg/ai"
 	"github.com/CanobbioE/algo-trading/pkg/config"
 	"github.com/CanobbioE/algo-trading/pkg/monitor"
 	"github.com/CanobbioE/algo-trading/pkg/printer"
@@ -21,20 +22,22 @@ import (
 )
 
 type analysisScope struct {
-	p           printer.Printer
-	cfg         *config.Config
-	ticker      string
-	timeFrame   string
-	mode        string
-	cfgFile     string
-	refreshRate time.Duration
-	lifespan    time.Duration
+	p                printer.Printer
+	cfg              *config.Config
+	output           *strings.Builder
+	assistant        *ai.Assistant
+	ticker           string
+	timeFrame        string
+	mode             string
+	cfgFile          string
+	assistantCfgFile string
+	refreshRate      time.Duration
+	lifespan         time.Duration
 }
 
 func init() {
-	s := &analysisScope{
-		p: &printer.Standard{},
-	}
+	s := &analysisScope{output: &strings.Builder{}}
+	s.p = printer.NewCompositePrinter(&printer.Standard{}, printer.NewStringsPrinter(s.output))
 	analysisCmd := &cobra.Command{
 		Use:     "analyse",
 		Short:   "Analyse a single stock",
@@ -51,28 +54,52 @@ func init() {
 	analysisCmd.Flags().DurationVarP(&s.refreshRate, "refresh", "r", 10*time.Minute, "Analyses refresh rate in continuos mode")
 	analysisCmd.Flags().DurationVarP(&s.lifespan, "life", "l", 1*time.Hour, "How long the continuous mode should run for")
 
+	analysisCmd.Flags().StringVarP(&s.assistantCfgFile, "assistant", "a", "", "Path to config file for the AI assistant")
+
 	utilities.Must(analysisCmd.MarkFlagRequired("ticker"))
 	utilities.Must(analysisCmd.MarkFlagRequired("config"))
 	rootCmd.AddCommand(analysisCmd)
 }
 
-func (s *analysisScope) preRunE(_ *cobra.Command, _ []string) error {
+func (s *analysisScope) preRunE(cmd *cobra.Command, _ []string) error {
 	file, err := os.Open(s.cfgFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open configuration file: %w", err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
 	decoder := json.NewDecoder(file)
-	var cfg config.Config
-	err = decoder.Decode(&cfg)
+	err = decoder.Decode(&s.cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to decode configuration: %w", err)
 	}
 
-	s.cfg = &cfg
+	if s.assistantCfgFile == "" {
+		return nil
+	}
+
+	assistantFile, err := os.Open(s.assistantCfgFile)
+	if err != nil {
+		return fmt.Errorf("failed to open AI assistant configuration file: %w", err)
+	}
+	defer func() {
+		_ = assistantFile.Close()
+	}()
+
+	var aiCfg ai.Config
+	decoder = json.NewDecoder(assistantFile)
+	err = decoder.Decode(&aiCfg)
+	if err != nil {
+		return fmt.Errorf("failed to decode AI assistant configuration: %w", err)
+	}
+
+	s.assistant, err = ai.NewAssistant(cmd.Context(), &aiCfg)
+	if err != nil {
+		return fmt.Errorf("failed to create AI assistant: %w", err)
+	}
+
 	return nil
 }
 
@@ -125,11 +152,30 @@ func (s *analysisScope) analyse(ctx context.Context, cli api.Client) error {
 
 	s.p.Reset()
 	strategies.NewAnalysisInput(s.p.CleanLine(), s.cfg.Strategies...).GenerateAnalysis()
-	s.p.Printf("Sentiment is:\n")
+	s.p.Printf("Considering %d strategies, the overall sentiment is:\n", len(s.cfg.Strategies))
 	s.printSentiment(signals.Buy, m)
 	s.printSentiment(signals.Sell, m)
 	s.printSentiment(signals.Setup, m)
 	s.printSentiment(signals.NoOp, m)
+
+	if s.assistant == nil {
+		return nil
+	}
+
+	assistantInput := printer.CleanOutput(s.output)
+	s.p.Println("======================")
+
+	s.p.Println("Asking the AI assistant to do its job...")
+
+	aiSuggestion, err := s.assistant.Analyse(ctx, assistantInput, s.cfg.Filters.MaxRisk.String(), s.ticker)
+	if err != nil {
+		return err
+	}
+
+	s.p.Reset()
+	s.p.Println("======================")
+	s.p.Println(aiSuggestion)
+
 	return nil
 }
 

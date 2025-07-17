@@ -8,33 +8,33 @@ import (
 	"github.com/CanobbioE/algo-trading/pkg/strategies"
 )
 
-// Config is the project configuration.
-type Config struct {
-	Thresholds           *strategies.Thresholds       `json:"thresholds"`
-	MACDParams           *strategies.MACDParams       `json:"macd_params"`
-	Filters              *monitor.ScanFilters         `json:"filters"`
-	StockUniverse        []string                     `json:"stock_universe"`
-	Strategies           []*strategies.StrategyWeight `json:"strategies"`
-	LookBack             int                          `json:"lookback"`
-	MomentumLookBack     int                          `json:"momentum_look_back"`
-	BollingerCoefficient float64                      `json:"bollinger_coefficient"`
-}
-
-type rawCfg struct {
-	Thresholds           *strategies.Thresholds `json:"thresholds"`
-	MACDParams           *strategies.MACDParams `json:"macd_params"`
-	ScanFilters          *monitor.ScanFilters   `json:"scan_filters"`
-	Strategies           []*rawStrategies       `json:"strategies"`
-	StockUniverse        []string               `json:"stock_universe"`
-	LookBack             int                    `json:"lookback"`
-	MomentumLookBack     int                    `json:"momentum_lookback"`
-	BollingerCoefficient float64                `json:"bollinger_coefficient"`
-}
-
-type rawStrategies struct {
-	Strategy string  `json:"strategy"`
-	Weight   float64 `json:"weight"`
-}
+type (
+	// Config is the project configuration.
+	Config struct {
+		Thresholds           *strategies.Thresholds       `json:"thresholds"`
+		MACDParams           *strategies.MACDParams       `json:"macd_params"`
+		Filters              *monitor.ScanFilters         `json:"filters"`
+		StockUniverse        []string                     `json:"stock_universe"`
+		Strategies           []*strategies.StrategyWeight `json:"strategies"`
+		LookBack             int                          `json:"lookback"`
+		MomentumLookBack     int                          `json:"momentum_look_back"`
+		BollingerCoefficient float64                      `json:"bollinger_coefficient"`
+	}
+	rawCfg struct {
+		Thresholds           *strategies.Thresholds `json:"thresholds"`
+		MACDParams           *strategies.MACDParams `json:"macd_params"`
+		ScanFilters          *monitor.ScanFilters   `json:"scan_filters"`
+		Strategies           []*rawStrategies       `json:"strategies"`
+		StockUniverse        []string               `json:"stock_universe"`
+		LookBack             int                    `json:"lookback"`
+		MomentumLookBack     int                    `json:"momentum_lookback"`
+		BollingerCoefficient float64                `json:"bollinger_coefficient"`
+	}
+	rawStrategies struct {
+		Strategy string  `json:"strategy"`
+		Weight   float64 `json:"weight"`
+	}
+)
 
 // UnmarshalJSON implements a custom json.Unmarshaler.
 func (c *Config) UnmarshalJSON(data []byte) error {

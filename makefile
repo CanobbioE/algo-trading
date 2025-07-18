@@ -3,7 +3,7 @@ GO111MODULE=on
 PKG_NAME=.
 
 
-
+# do nothing
 default:
 
 fmt:

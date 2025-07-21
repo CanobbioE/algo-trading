@@ -1,0 +1,20 @@
+{
+  "stock_universe": ["GME"],
+  "strategies": [
+    {
+      "strategy": "BREAKOUT",
+      "weight": 1.8
+    }
+  ],
+  "thresholds": {
+    "atr_period": 3,
+    "low_atr_threshold": 0.07,
+    "high_atr_threshold": 0.4,
+    "low_lookback": 8,
+    "high_lookback": 3,
+    "volume_threshold": 1.0,
+    "deviation": 0.03,
+    "squeeze": 0.07,
+    "min_momentum_return": 0.03
+  }
+}

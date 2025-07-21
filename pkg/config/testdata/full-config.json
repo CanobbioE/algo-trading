@@ -1,0 +1,57 @@
+{
+  "stock_universe": ["GME"],
+  "strategies": [
+    {
+      "strategy": "BREAKOUT",
+      "weight": 1.8
+    },
+    {
+      "strategy": "VWAP",
+      "weight": 1.0
+    },
+    {
+      "strategy": "MEANREVERSION",
+      "weight": 0.6
+    },
+    {
+      "strategy": "BOLLINGER",
+      "weight": 1.2
+    },
+    {
+      "strategy": "MOMENTUM",
+      "weight": 1.8
+    },
+    {
+      "strategy": "MACD",
+      "weight": 3.0
+    }
+  ],
+  "thresholds": {
+    "atr_period": 3,
+    "low_atr_threshold": 0.07,
+    "high_atr_threshold": 0.4,
+    "low_lookback": 8,
+    "high_lookback": 3,
+    "volume_threshold": 1.0,
+    "deviation": 0.03,
+    "squeeze": 0.07,
+    "min_momentum_return": 0.03
+  },
+  "macd_params": {
+    "fast_period": 6,
+    "slow_period": 13,
+    "signal_period": 5,
+    "trigger_distance": 0.005
+  },
+  "lookback": 3,
+  "momentum_lookback":  8,
+  "bollinger_coefficient": 1.8,
+  "scan_filters": {
+    "min_confidence": 0.4,
+    "min_weighted_score": 0.4,
+    "max_risk": "HIGH",
+    "min_opportunity": "HIGH",
+    "min_volume": 1000,
+    "required_signals": 1
+  }
+}

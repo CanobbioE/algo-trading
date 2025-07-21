@@ -11,10 +11,6 @@ func DefaultPointer[T comparable](optional *T) *T {
 
 // ToPointer returns a pointer to val.
 func ToPointer[T comparable](val T) *T {
-	var defaultValue T
-	if val == defaultValue {
-		return nil
-	}
 	return &val
 }
 

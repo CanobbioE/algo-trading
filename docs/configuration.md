@@ -277,7 +277,7 @@ This document explains each configuration parameter used in the market scanner s
 ```json
 "scan_filters": {
   "min_confidence": 0.5,
-  "min_weightedScore": 0.5, 
+  "min_weighted_score": 0.5, 
   "max_risk": "HIGH",
   "min_opportunity": "LOW",
   "min_volume": 1000,
@@ -293,7 +293,7 @@ This document explains each configuration parameter used in the market scanner s
 - **Usage**: 0.5 = at least 50% of strategies must signal BUY
 - **Impact**: Higher values = fewer but higher-quality signals
 
-#### `min_weightedScore`
+#### `min_weighted_score`
 - **Purpose**: Minimum weighted score across all strategies
 - **Range**: 0.0-5.0 (depends on strategy weights)
 - **Usage**: Accounts for strategy weights in decision making

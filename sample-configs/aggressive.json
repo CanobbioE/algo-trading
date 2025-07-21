@@ -53,7 +53,7 @@
   "bollinger_coefficient": 1.8,
   "scan_filters": {
     "min_confidence": 0.4,
-    "min_weightedScore": 0.4,
+    "min_weighted_score": 0.4,
     "max_risk": "HIGH",
     "min_opportunity": "HIGH",
     "min_volume": 1000,

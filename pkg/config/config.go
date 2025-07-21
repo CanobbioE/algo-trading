@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/CanobbioE/algo-trading/pkg/monitor"
@@ -43,12 +44,20 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("failed to parse json raw: %w", err)
 	}
 	c.Thresholds = raw.Thresholds
+	if c.Thresholds == nil {
+		return errors.New("no thresholds specified")
+	}
 	c.Filters = raw.ScanFilters
 	c.BollingerCoefficient = raw.BollingerCoefficient
 	c.StockUniverse = raw.StockUniverse
 	c.LookBack = raw.LookBack
 	c.MACDParams = raw.MACDParams
 	c.MomentumLookBack = raw.MomentumLookBack
+
+	c.Strategies = make([]*strategies.StrategyWeight, 0, len(raw.Strategies))
+	if len(raw.Strategies) == 0 {
+		return errors.New("at least one strategy must be specified")
+	}
 
 	for _, str := range raw.Strategies {
 		var s strategies.Strategy
@@ -65,6 +74,8 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 			s = strategies.NewMACDStrategy(c.MACDParams)
 		case "MOMENTUM", "momentum":
 			s = strategies.NewMomentumStrategy(c.MomentumLookBack, c.Thresholds)
+		default:
+			return fmt.Errorf("unknown strategy %s", str.Strategy)
 		}
 		c.Strategies = append(c.Strategies, &strategies.StrategyWeight{
 			Weight:   str.Weight,

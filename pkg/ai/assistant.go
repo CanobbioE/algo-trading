@@ -22,6 +22,9 @@ const (
 - Be **no more than 2 concise sentences**.
 - Provide a direct recommendation: BUY, HOLD, or SELL.
 - Justify the recommendation based on both technicals and recent events.
+- In case your recommendation is to:
+	- BUY: include a suggested purchase price (e.g. near current BID, near daily lowest, market value, etc)
+	- SELL: include a suggested sell price (e.g. near current ASK, near daily highest, market value, etc)
 - Do **not** repeat the raw input.
 - Think through your reasoning silently; return only the final result.`
 )
@@ -71,6 +74,7 @@ func (a *Assistant) Analyse(ctx context.Context, input, risk, ticker string) (st
 		{Text: "Input:\n" + input},
 	}
 
+	// TODO: consider caching
 	resp, err := a.cli.Models.GenerateContent(ctx, "gemini-2.5-pro", []*genai.Content{{Parts: parts}}, modelCfg)
 	if err != nil {
 		return "", fmt.Errorf("ai assistant: failed to generate content: %w", err)

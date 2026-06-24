@@ -63,7 +63,7 @@ func (a *Assistant) Analyse(ctx context.Context, input, risk, ticker string) (st
 				{Text: outputRules},
 			},
 		},
-		Temperature:      genai.Ptr[float32](0.2),
+		Temperature:      new(float32(0.2)),
 		CandidateCount:   1,
 		ResponseMIMEType: "text/plain",
 	}

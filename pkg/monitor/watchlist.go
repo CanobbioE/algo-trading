@@ -35,7 +35,7 @@ func (wl *WatchList) StartMonitoring(callback func() error) {
 			if callback != nil {
 				// todo: maybe return a bool "shouldContinue" to improve err handling.
 				if err := callback(); err != nil {
-					wl.p.PrintColored(printer.Red, fmt.Sprintf("Scan error: %v\n", err))
+					wl.p.PrintColored(printer.Red, "%s", fmt.Sprintf("Scan error: %v\n", err))
 					continue
 				}
 			}

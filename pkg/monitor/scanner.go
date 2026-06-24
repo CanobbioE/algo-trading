@@ -317,7 +317,7 @@ func (ms *MarketScanner) GenerateReport(scores []*StockScore, topN int) {
 			score.BuySignals, score.SellSignals, score.HoldSignals, score.SetupSignals)
 		ms.p.Printf("  Confidence: %.1f%%\n", score.Confidence*100)
 		ms.p.Printf("  Weighted Score: %.2f\n", score.WeightedScore)
-		ms.p.Printf("  Risk: " + risk + " | Opportunity: " + opp + "\n")
+		ms.p.Printf("%s", "  Risk: "+risk+" | Opportunity: "+opp+"\n")
 		ms.p.Printf("  Volume: %.0f\n", score.Volume)
 
 		if len(score.Reasoning) > 0 {

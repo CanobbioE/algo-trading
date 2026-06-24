@@ -10,8 +10,7 @@ import (
 
 func TestDefaultPointer(t *testing.T) {
 	t.Run("returns default value when input is nil", func(t *testing.T) {
-		want := ""
-		if got := utilities.DefaultPointer[string](nil); !reflect.DeepEqual(got, &want) {
+		if got := utilities.DefaultPointer[string](nil); !reflect.DeepEqual(got, new("")) {
 			t.Errorf("DefaultPointer() = %+v, want \"\"", got)
 		}
 	})
@@ -27,7 +26,7 @@ func TestDefaultPointer(t *testing.T) {
 func TestToPointer(t *testing.T) {
 	t.Run("returns a pointer to a value", func(t *testing.T) {
 		want := "test"
-		if got := utilities.ToPointer("test"); !reflect.DeepEqual(got, &want) {
+		if got := new("test"); !reflect.DeepEqual(got, &want) {
 			t.Errorf("DefaultPointer(STRING) = %v, want %v", got, want)
 		}
 	})

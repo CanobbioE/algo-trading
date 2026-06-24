@@ -4,7 +4,7 @@ Using algorithms to make informed trades.
 
 ⚠️
 > This project was created as a fun learning experience and personal challenge.  
-> It's not guarantee to be mantained.  
+> It's not guarantee to be maintained.  
 > It does not provide professional insight on stock trading.
 
 ⚠️

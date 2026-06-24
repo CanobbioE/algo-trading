@@ -32,11 +32,13 @@ const (
 // Config for the AI assistant.
 type Config struct {
 	APIKey string `json:"api_key"`
+	Model  string `json:"model"`
 }
 
 // Assistant uses Gemini API to assist with stock picking.
 type Assistant struct {
-	cli *genai.Client
+	cli   *genai.Client
+	model string
 }
 
 // NewAssistant creates a new AI Assistant using Gemini, with the given config.
@@ -49,7 +51,7 @@ func NewAssistant(ctx context.Context, cfg *Config) (*Assistant, error) {
 		return nil, err
 	}
 
-	return &Assistant{cli: client}, nil
+	return &Assistant{cli: client, model: cfg.Model}, nil
 }
 
 // Analyse calls the underlying Gemini client and asks it to run a technical analysis on the given stock,
@@ -74,8 +76,8 @@ func (a *Assistant) Analyse(ctx context.Context, input, risk, ticker string) (st
 		{Text: "Input:\n" + input},
 	}
 
-	// TODO: consider caching
-	resp, err := a.cli.Models.GenerateContent(ctx, "gemini-2.5-pro", []*genai.Content{{Parts: parts}}, modelCfg)
+	// TODO: consider caching, session management, a2a protocol etc... a lot has changed in the LLM ecosystem
+	resp, err := a.cli.Models.GenerateContent(ctx, a.model, []*genai.Content{{Parts: parts}}, modelCfg)
 	if err != nil {
 		return "", fmt.Errorf("ai assistant: failed to generate content: %w", err)
 	}

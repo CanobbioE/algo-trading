@@ -20,7 +20,8 @@ There is the option to use a LLM model to analyse the output of some commands an
 To configure the "AI" assistant, a JSON config file is required with the following structure:
 ```json
 {
-  "api_key": "xxxx"
+  "api_key": "xxxx",
+    "model": "gpt-4"
 }
 ```
 
